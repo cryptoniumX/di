@@ -18,9 +18,11 @@ func (container *Container) Inject(servicePtr interface{}) error {
 	for i := 0; i < structValue.NumField(); i++ {
 		field := structValue.Type().Field(i)
 		fieldValue := structValue.Field(i)
-		depdencyName, ok := field.Tag.Lookup("di")
+		dependencyName, ok := field.Tag.Lookup("di")
 		if ok {
-			dependency, err := invokeByName(container, field.Type.String(), depdencyName)
+			defaultName := field.Type.String()
+			fallbackName := dependencyName
+			dependency, err := invokeByName(container, defaultName, fallbackName)
 			if err != nil {
 				return err
 			}
@@ -33,7 +35,7 @@ func (container *Container) Inject(servicePtr interface{}) error {
 				return fmt.Errorf(
 					"Dependency not found. Field: %s, Dependency: %s",
 					field.Name,
-					depdencyName,
+					dependencyName,
 				)
 			}
 
