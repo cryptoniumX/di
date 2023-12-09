@@ -84,7 +84,7 @@ func MustInvoke[T any](i *Container) T {
 }
 
 func InvokeNamed[T any](i *Container, name string) (T, error) {
-	return invokeImplem[T](i, name)
+	return invokeImplem[T](i, name, "")
 }
 
 func MustInvokeNamed[T any](i *Container, name string) T {
@@ -93,12 +93,37 @@ func MustInvokeNamed[T any](i *Container, name string) T {
 	return s
 }
 
-func invokeImplem[T any](i *Container, name string) (T, error) {
+func invokeByName(i *Container, name string, fallbackName string) (interface{}, error) {
+	return invokeImplem[any](i, name, fallbackName)
+}
+
+func invokeImplem[T any](i *Container, name string, fallbackName string) (T, error) {
 	_i := getContainerOrDefault(i)
 
-	serviceAny, ok := _i.get(name)
+	var serviceAny any
+	var ok bool
+
+	serviceAny, ok = _i.get(name)
 	if !ok {
-		return empty[T](), _i.serviceNotFound(name)
+		fallbackNames := []string{
+			// if name is not found, try to find by pointer name
+			fmt.Sprintf("*%s", name),
+			fallbackName,
+		}
+
+		for _, fallbackName := range fallbackNames {
+			serviceAny, ok = _i.get(fallbackName)
+			if ok {
+				break
+			}
+		}
+
+		if !ok {
+			return empty[T](), _i.serviceNotFound(
+				fmt.Sprintf("name: %s, fallbackName:%s", name, fallbackName),
+			)
+		}
+
 	}
 
 	service, ok := serviceAny.(Service)
