@@ -129,7 +129,7 @@ func TestContainerExists(t *testing.T) {
 
 	i := New()
 
-	service := &ServiceEager{
+	service := &serviceEager{
 		name:     "foobar",
 		instance: 42,
 	}
@@ -144,7 +144,7 @@ func TestContainerGet(t *testing.T) {
 
 	i := New()
 
-	service := &ServiceEager{
+	service := &serviceEager{
 		name:     "foobar",
 		instance: 42,
 	}
@@ -178,12 +178,12 @@ func TestContainerSet(t *testing.T) {
 
 	i := New()
 
-	service1 := &ServiceEager{
+	service1 := &serviceEager{
 		name:     "foobar",
 		instance: 42,
 	}
 
-	service2 := &ServiceEager{
+	service2 := &serviceEager{
 		name:     "foobar",
 		instance: 21,
 	}
@@ -209,7 +209,7 @@ func TestContainerRemove(t *testing.T) {
 
 	i := New()
 
-	service := &ServiceEager{
+	service := &serviceEager{
 		name:     "foobar",
 		instance: 42,
 	}
@@ -225,7 +225,7 @@ func TestContainerForEach(t *testing.T) {
 
 	i := New()
 
-	service := &ServiceEager{
+	service := &serviceEager{
 		name:     "foobar",
 		instance: 42,
 	}
@@ -246,12 +246,12 @@ func TestContainerServiceNotFound(t *testing.T) {
 
 	i := New()
 
-	service1 := &ServiceEager{
+	service1 := &serviceEager{
 		name:     "foo",
 		instance: 42,
 	}
 
-	service2 := &ServiceEager{
+	service2 := &serviceEager{
 		name:     "bar",
 		instance: 21,
 	}

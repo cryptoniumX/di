@@ -30,14 +30,14 @@ func TestServiceEagerInstance(t *testing.T) {
 	_test := test{foobar: "foobar"}
 
 	service1 := newServiceEager("foobar", _test)
-	is.Equal(&ServiceEager{name: "foobar", instance: _test}, service1)
+	is.Equal(&serviceEager{name: "foobar", instance: _test}, service1)
 
 	instance1, err1 := service1.getInstance(nil)
 	is.Nil(err1)
 	is.Equal(_test, instance1)
 
 	service2 := newServiceEager("foobar", 42)
-	is.Equal(&ServiceEager{name: "foobar", instance: 42}, service2)
+	is.Equal(&serviceEager{name: "foobar", instance: 42}, service2)
 
 	instance2, err2 := service2.getInstance(nil)
 	is.Nil(err2)

@@ -14,7 +14,7 @@ func toProviderFn[T any](provider Provider[T]) providerFn {
 	}
 }
 
-type ServiceLazy struct {
+type serviceLazy struct {
 	mu       sync.RWMutex
 	name     string
 	instance any
@@ -25,7 +25,7 @@ type ServiceLazy struct {
 }
 
 func newServiceLazy(name string, provider providerFn) Service {
-	return &ServiceLazy{
+	return &serviceLazy{
 		name: name,
 
 		built:    false,
@@ -34,12 +34,12 @@ func newServiceLazy(name string, provider providerFn) Service {
 }
 
 //nolint:unused
-func (s *ServiceLazy) getName() string {
+func (s *serviceLazy) getName() string {
 	return s.name
 }
 
 //nolint:unused
-func (s *ServiceLazy) getInstance(i *Container) (any, error) {
+func (s *serviceLazy) getInstance(i *Container) (any, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -54,7 +54,7 @@ func (s *ServiceLazy) getInstance(i *Container) (any, error) {
 }
 
 //nolint:unused
-func (s *ServiceLazy) build(i *Container) (err error) {
+func (s *serviceLazy) build(i *Container) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			if e, ok := r.(error); ok {
@@ -76,7 +76,7 @@ func (s *ServiceLazy) build(i *Container) (err error) {
 	return nil
 }
 
-func (s *ServiceLazy) healthcheck() error {
+func (s *serviceLazy) healthcheck() error {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -92,7 +92,7 @@ func (s *ServiceLazy) healthcheck() error {
 	return nil
 }
 
-func (s *ServiceLazy) shutdown() error {
+func (s *serviceLazy) shutdown() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -114,9 +114,9 @@ func (s *ServiceLazy) shutdown() error {
 	return nil
 }
 
-func (s *ServiceLazy) clone() any {
+func (s *serviceLazy) clone() any {
 	// reset `build` flag and instance
-	return &ServiceLazy{
+	return &serviceLazy{
 		name: s.name,
 
 		built:    false,

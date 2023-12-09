@@ -1,28 +1,28 @@
 package di
 
-type ServiceEager struct {
+type serviceEager struct {
 	name     string
 	instance any
 }
 
 func newServiceEager(name string, instance any) Service {
-	return &ServiceEager{
+	return &serviceEager{
 		name:     name,
 		instance: instance,
 	}
 }
 
 //nolint:unused
-func (s *ServiceEager) getName() string {
+func (s *serviceEager) getName() string {
 	return s.name
 }
 
 //nolint:unused
-func (s *ServiceEager) getInstance(i *Container) (any, error) {
+func (s *serviceEager) getInstance(i *Container) (any, error) {
 	return s.instance, nil
 }
 
-func (s *ServiceEager) healthcheck() error {
+func (s *serviceEager) healthcheck() error {
 	instance, ok := any(s.instance).(Healthcheckable)
 	if ok {
 		return instance.HealthCheck()
@@ -31,7 +31,7 @@ func (s *ServiceEager) healthcheck() error {
 	return nil
 }
 
-func (s *ServiceEager) shutdown() error {
+func (s *serviceEager) shutdown() error {
 	instance, ok := any(s.instance).(Shutdownable)
 	if ok {
 		return instance.Shutdown()
@@ -40,6 +40,6 @@ func (s *ServiceEager) shutdown() error {
 	return nil
 }
 
-func (s *ServiceEager) clone() any {
+func (s *serviceEager) clone() any {
 	return s
 }

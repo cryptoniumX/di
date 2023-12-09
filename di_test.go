@@ -136,7 +136,7 @@ func TestInvoke(t *testing.T) {
 	s0a, ok0a := i.services["di.test"]
 	is.True(ok0a)
 
-	s0b, ok0b := s0a.(*ServiceLazy)
+	s0b, ok0b := s0a.(*serviceLazy)
 	is.True(ok0b)
 	is.False(s0b.built)
 
