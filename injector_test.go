@@ -129,7 +129,7 @@ func TestInjectorExists(t *testing.T) {
 
 	i := New()
 
-	service := &ServiceEager[int]{
+	service := &ServiceEager{
 		name:     "foobar",
 		instance: 42,
 	}
@@ -144,7 +144,7 @@ func TestInjectorGet(t *testing.T) {
 
 	i := New()
 
-	service := &ServiceEager[int]{
+	service := &ServiceEager{
 		name:     "foobar",
 		instance: 42,
 	}
@@ -156,7 +156,7 @@ func TestInjectorGet(t *testing.T) {
 		is.True(ok1)
 		is.NotEmpty(s1)
 		if ok1 {
-			s, ok := s1.(Service[int])
+			s, ok := s1.(Service)
 			is.True(ok)
 
 			v, err := s.getInstance(i)
@@ -178,12 +178,12 @@ func TestInjectorSet(t *testing.T) {
 
 	i := New()
 
-	service1 := &ServiceEager[int]{
+	service1 := &ServiceEager{
 		name:     "foobar",
 		instance: 42,
 	}
 
-	service2 := &ServiceEager[int]{
+	service2 := &ServiceEager{
 		name:     "foobar",
 		instance: 21,
 	}
@@ -209,7 +209,7 @@ func TestInjectorRemove(t *testing.T) {
 
 	i := New()
 
-	service := &ServiceEager[int]{
+	service := &ServiceEager{
 		name:     "foobar",
 		instance: 42,
 	}
@@ -225,7 +225,7 @@ func TestInjectorForEach(t *testing.T) {
 
 	i := New()
 
-	service := &ServiceEager[int]{
+	service := &ServiceEager{
 		name:     "foobar",
 		instance: 42,
 	}
@@ -246,12 +246,12 @@ func TestInjectorServiceNotFound(t *testing.T) {
 
 	i := New()
 
-	service1 := &ServiceEager[int]{
+	service1 := &ServiceEager{
 		name:     "foo",
 		instance: 42,
 	}
 
-	service2 := &ServiceEager[int]{
+	service2 := &ServiceEager{
 		name:     "bar",
 		instance: 21,
 	}

@@ -55,7 +55,7 @@ func TestProvide(t *testing.T) {
 	s1, ok1 := i.services["*di.test"]
 	is.True(ok1)
 	if ok1 {
-		s, ok := s1.(Service[*test])
+		s, ok := s1.(Service)
 		is.True(ok)
 		if ok {
 			is.Equal("*di.test", s.getName())
@@ -65,7 +65,7 @@ func TestProvide(t *testing.T) {
 	s2, ok2 := i.services["di.test"]
 	is.True(ok2)
 	if ok2 {
-		s, ok := s2.(Service[test])
+		s, ok := s2.(Service)
 		is.True(ok)
 		if ok {
 			is.Equal("di.test", s.getName())
@@ -94,7 +94,7 @@ func TestProvideValue(t *testing.T) {
 	s1, ok1 := i.services["foobar"]
 	is.True(ok1)
 	if ok1 {
-		s, ok := s1.(Service[int])
+		s, ok := s1.(Service)
 		is.True(ok)
 		if ok {
 			is.Equal("foobar", s.getName())
@@ -107,7 +107,7 @@ func TestProvideValue(t *testing.T) {
 	s2, ok2 := i.services["hello"]
 	is.True(ok2)
 	if ok2 {
-		s, ok := s2.(Service[test])
+		s, ok := s2.(Service)
 		is.True(ok)
 		if ok {
 			is.Equal("hello", s.getName())
@@ -136,7 +136,7 @@ func TestInvoke(t *testing.T) {
 	s0a, ok0a := i.services["di.test"]
 	is.True(ok0a)
 
-	s0b, ok0b := s0a.(*ServiceLazy[test])
+	s0b, ok0b := s0a.(*ServiceLazy)
 	is.True(ok0b)
 	is.False(s0b.built)
 
@@ -222,7 +222,8 @@ func TestMustInvokeNamed(t *testing.T) {
 	})
 
 	is.Panics(func() {
-		_ = MustInvokeNamed[string](i, "foobar")
+		result := MustInvokeNamed[string](i, "foobar")
+		fmt.Printf("result = %+v\n", result)
 	})
 
 	is.NotPanics(func() {

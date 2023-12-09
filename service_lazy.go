@@ -4,7 +4,15 @@ import (
 	"sync"
 )
 
-type Provider func(*Injector) (any, error)
+type Provider[T any] func(*Injector) (T, error)
+type providerFn func(*Injector) (any, error)
+
+func toProviderFn[T any](provider Provider[T]) providerFn {
+	return func(injector *Injector) (any, error) {
+		result, err := provider(injector)
+		return result, err
+	}
+}
 
 type ServiceLazy struct {
 	mu       sync.RWMutex
@@ -13,10 +21,10 @@ type ServiceLazy struct {
 
 	// lazy loading
 	built    bool
-	provider Provider
+	provider providerFn
 }
 
-func newServiceLazy(name string, provider Provider) Service {
+func newServiceLazy(name string, provider providerFn) Service {
 	return &ServiceLazy{
 		name: name,
 

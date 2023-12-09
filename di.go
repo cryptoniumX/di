@@ -16,7 +16,8 @@ func ProvideNamed[T any](i *Injector, name string, provider Provider[T]) {
 		panic(fmt.Errorf("DI: service `%s` has already been declared", name))
 	}
 
-	service := newServiceLazy(name, provider)
+	providerFn := toProviderFn[T](provider)
+	service := newServiceLazy(name, providerFn)
 	_i.set(name, service)
 
 	_i.logf("service %s injected", name)
@@ -49,7 +50,8 @@ func Override[T any](i *Injector, provider Provider[T]) {
 func OverrideNamed[T any](i *Injector, name string, provider Provider[T]) {
 	_i := getInjectorOrDefault(i)
 
-	service := newServiceLazy(name, provider)
+	providerFn := toProviderFn[T](provider)
+	service := newServiceLazy(name, providerFn)
 	_i.set(name, service)
 
 	_i.logf("service %s overridden", name)
@@ -99,21 +101,24 @@ func invokeImplem[T any](i *Injector, name string) (T, error) {
 		return empty[T](), _i.serviceNotFound(name)
 	}
 
-	service, ok := serviceAny.(Service[T])
+	service, ok := serviceAny.(Service)
 	if !ok {
 		return empty[T](), _i.serviceNotFound(name)
 	}
 
-	instance, err := service.getInstance(_i)
+	instanceAny, err := service.getInstance(_i)
 	if err != nil {
 		return empty[T](), err
 	}
 
 	_i.onServiceInvoke(name)
 
-	_i.logf("service %s invoked", name)
+	if instance, ok := instanceAny.(T); ok {
+		_i.logf("service %s invoked", name)
+		return instance, nil
+	}
 
-	return instance, nil
+	panic(fmt.Errorf("DI: service `%s` is not of type `%T`", name, empty[T]()))
 }
 
 func HealthCheck[T any](i *Injector) error {
