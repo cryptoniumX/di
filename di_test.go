@@ -7,20 +7,20 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDefaultInjector(t *testing.T) {
+func TestDefaultContainer(t *testing.T) {
 	is := assert.New(t)
 
 	type test struct {
 		foobar string
 	}
 
-	DefaultInjector = New()
+	DefaultContainer = New()
 
-	Provide(nil, func(i *Injector) (*test, error) {
+	Provide(nil, func(i *Container) (*test, error) {
 		return &test{foobar: "42"}, nil
 	})
 
-	is.Len(DefaultInjector.services, 1)
+	is.Len(DefaultContainer.services, 1)
 
 	service, err := Invoke[*test](nil)
 
@@ -35,17 +35,17 @@ func TestProvide(t *testing.T) {
 
 	i := New()
 
-	Provide(i, func(i *Injector) (*test, error) {
+	Provide(i, func(i *Container) (*test, error) {
 		return &test{}, nil
 	})
 
-	Provide(i, func(i *Injector) (test, error) {
+	Provide(i, func(i *Container) (test, error) {
 		return test{}, fmt.Errorf("error")
 	})
 
 	is.Panics(func() {
 		// try to erase previous instance
-		Provide(i, func(i *Injector) (test, error) {
+		Provide(i, func(i *Container) (test, error) {
 			return test{}, fmt.Errorf("error")
 		})
 	})
@@ -55,7 +55,7 @@ func TestProvide(t *testing.T) {
 	s1, ok1 := i.services["*di.test"]
 	is.True(ok1)
 	if ok1 {
-		s, ok := s1.(Service[*test])
+		s, ok := s1.(Service)
 		is.True(ok)
 		if ok {
 			is.Equal("*di.test", s.getName())
@@ -65,7 +65,7 @@ func TestProvide(t *testing.T) {
 	s2, ok2 := i.services["di.test"]
 	is.True(ok2)
 	if ok2 {
-		s, ok := s2.(Service[test])
+		s, ok := s2.(Service)
 		is.True(ok)
 		if ok {
 			is.Equal("di.test", s.getName())
@@ -94,7 +94,7 @@ func TestProvideValue(t *testing.T) {
 	s1, ok1 := i.services["foobar"]
 	is.True(ok1)
 	if ok1 {
-		s, ok := s1.(Service[int])
+		s, ok := s1.(Service)
 		is.True(ok)
 		if ok {
 			is.Equal("foobar", s.getName())
@@ -107,7 +107,7 @@ func TestProvideValue(t *testing.T) {
 	s2, ok2 := i.services["hello"]
 	is.True(ok2)
 	if ok2 {
-		s, ok := s2.(Service[test])
+		s, ok := s2.(Service)
 		is.True(ok)
 		if ok {
 			is.Equal("hello", s.getName())
@@ -127,7 +127,7 @@ func TestInvoke(t *testing.T) {
 
 	i := New()
 
-	Provide(i, func(i *Injector) (test, error) {
+	Provide(i, func(i *Container) (test, error) {
 		return test{foobar: "foobar"}, nil
 	})
 
@@ -136,7 +136,7 @@ func TestInvoke(t *testing.T) {
 	s0a, ok0a := i.services["di.test"]
 	is.True(ok0a)
 
-	s0b, ok0b := s0a.(*ServiceLazy[test])
+	s0b, ok0b := s0a.(*ServiceLazy)
 	is.True(ok0b)
 	is.False(s0b.built)
 
@@ -192,7 +192,7 @@ func TestMustInvoke(t *testing.T) {
 	}
 	_test := test{foobar: "foobar"}
 
-	Provide(i, func(i *Injector) (test, error) {
+	Provide(i, func(i *Container) (test, error) {
 		return _test, nil
 	})
 
@@ -222,7 +222,8 @@ func TestMustInvokeNamed(t *testing.T) {
 	})
 
 	is.Panics(func() {
-		_ = MustInvokeNamed[string](i, "foobar")
+		result := MustInvokeNamed[string](i, "foobar")
+		fmt.Printf("result = %+v\n", result)
 	})
 
 	is.NotPanics(func() {
@@ -240,7 +241,7 @@ func TestShutdown(t *testing.T) {
 
 	i := New()
 
-	Provide(i, func(i *Injector) (test, error) {
+	Provide(i, func(i *Container) (test, error) {
 		return test{foobar: "foobar"}, nil
 	})
 
@@ -268,7 +269,7 @@ func TestMustShutdown(t *testing.T) {
 
 	i := New()
 
-	Provide(i, func(i *Injector) (test, error) {
+	Provide(i, func(i *Container) (test, error) {
 		return test{foobar: "foobar"}, nil
 	})
 
@@ -343,13 +344,13 @@ func TestDoubleInjection(t *testing.T) {
 	i := New()
 
 	is.NotPanics(func() {
-		Provide(i, func(i *Injector) (*test, error) {
+		Provide(i, func(i *Container) (*test, error) {
 			return &test{}, nil
 		})
 	})
 
 	is.PanicsWithError("DI: service `*di.test` has already been declared", func() {
-		Provide(i, func(i *Injector) (*test, error) {
+		Provide(i, func(i *Container) (*test, error) {
 			return &test{}, nil
 		})
 	})
@@ -359,7 +360,7 @@ func TestDoubleInjection(t *testing.T) {
 	})
 
 	is.PanicsWithError("DI: service `*di.test` has already been declared", func() {
-		ProvideNamed(i, "*di.test", func(i *Injector) (*test, error) {
+		ProvideNamed(i, "*di.test", func(i *Container) (*test, error) {
 			return &test{}, nil
 		})
 	})
@@ -379,17 +380,17 @@ func TestOverride(t *testing.T) {
 	i := New()
 
 	is.NotPanics(func() {
-		Provide(i, func(i *Injector) (*test, error) {
+		Provide(i, func(i *Container) (*test, error) {
 			return &test{42}, nil
 		})
 		is.Equal(42, MustInvoke[*test](i).foobar)
 
-		Override(i, func(i *Injector) (*test, error) {
+		Override(i, func(i *Container) (*test, error) {
 			return &test{1}, nil
 		})
 		is.Equal(1, MustInvoke[*test](i).foobar)
 
-		OverrideNamed(i, "*di.test", func(i *Injector) (*test, error) {
+		OverrideNamed(i, "*di.test", func(i *Container) (*test, error) {
 			return &test{2}, nil
 		})
 		is.Equal(2, MustInvoke[*test](i).foobar)

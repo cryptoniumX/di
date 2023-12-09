@@ -9,28 +9,28 @@ import (
 	"syscall"
 )
 
-var DefaultInjector = New()
+var DefaultContainer = New()
 
-func getInjectorOrDefault(i *Injector) *Injector {
+func getContainerOrDefault(i *Container) *Container {
 	if i != nil {
 		return i
 	}
 
-	return DefaultInjector
+	return DefaultContainer
 }
 
-func New() *Injector {
-	return NewWithOpts(&InjectorOpts{})
+func New() *Container {
+	return NewWithOpts(&ContainerOpts{})
 }
 
-type InjectorOpts struct {
-	HookAfterRegistration func(injector *Injector, serviceName string)
-	HookAfterShutdown     func(injector *Injector, serviceName string)
+type ContainerOpts struct {
+	HookAfterRegistration func(injector *Container, serviceName string)
+	HookAfterShutdown     func(injector *Container, serviceName string)
 
 	Logf func(format string, args ...any)
 }
 
-func NewWithOpts(opts *InjectorOpts) *Injector {
+func NewWithOpts(opts *ContainerOpts) *Container {
 	logf := opts.Logf
 	if logf == nil {
 		logf = func(format string, args ...any) {}
@@ -38,7 +38,7 @@ func NewWithOpts(opts *InjectorOpts) *Injector {
 
 	logf("injector created")
 
-	return &Injector{
+	return &Container{
 		mu:       sync.RWMutex{},
 		services: make(map[string]any),
 
@@ -52,7 +52,7 @@ func NewWithOpts(opts *InjectorOpts) *Injector {
 	}
 }
 
-type Injector struct {
+type Container struct {
 	mu       sync.RWMutex
 	services map[string]any
 
@@ -60,13 +60,13 @@ type Injector struct {
 	orderedInvocation      map[string]int // map is faster than slice
 	orderedInvocationIndex int
 
-	hookAfterRegistration func(injector *Injector, serviceName string)
-	hookAfterShutdown     func(injector *Injector, serviceName string)
+	hookAfterRegistration func(injector *Container, serviceName string)
+	hookAfterShutdown     func(injector *Container, serviceName string)
 
 	logf func(format string, args ...any)
 }
 
-func (i *Injector) ListProvidedServices() []string {
+func (i *Container) ListProvidedServices() []string {
 	i.mu.RLock()
 	names := keys(i.services)
 	i.mu.RUnlock()
@@ -76,7 +76,7 @@ func (i *Injector) ListProvidedServices() []string {
 	return names
 }
 
-func (i *Injector) ListInvokedServices() []string {
+func (i *Container) ListInvokedServices() []string {
 	i.mu.RLock()
 	names := keys(i.orderedInvocation)
 	i.mu.RUnlock()
@@ -86,7 +86,7 @@ func (i *Injector) ListInvokedServices() []string {
 	return names
 }
 
-func (i *Injector) HealthCheck() map[string]error {
+func (i *Container) HealthCheck() map[string]error {
 	i.mu.RLock()
 	names := keys(i.services)
 	i.mu.RUnlock()
@@ -104,7 +104,7 @@ func (i *Injector) HealthCheck() map[string]error {
 	return results
 }
 
-func (i *Injector) Shutdown() error {
+func (i *Container) Shutdown() error {
 	i.mu.RLock()
 	invocations := invertMap(i.orderedInvocation)
 	i.mu.RUnlock()
@@ -130,14 +130,14 @@ func (i *Injector) Shutdown() error {
 
 // ShutdownOnSIGTERM listens for sigterm signal in order to graceful stop service.
 // It will block until receiving a sigterm signal.
-func (i *Injector) ShutdownOnSIGTERM() error {
+func (i *Container) ShutdownOnSIGTERM() error {
 	return i.ShutdownOnSignals(syscall.SIGTERM)
 }
 
 // ShutdownOnSignals listens for signals defined in signals parameter in order to graceful stop service.
 // It will block until receiving any of these signal.
 // If no signal is provided in signals parameter, syscall.SIGTERM will be added as default signal.
-func (i *Injector) ShutdownOnSignals(signals ...os.Signal) error {
+func (i *Container) ShutdownOnSignals(signals ...os.Signal) error {
 	// Make sure there is at least syscall.SIGTERM as a signal
 	if len(signals) < 1 {
 		signals = append(signals, syscall.SIGTERM)
@@ -153,7 +153,7 @@ func (i *Injector) ShutdownOnSignals(signals ...os.Signal) error {
 	return i.Shutdown()
 }
 
-func (i *Injector) healthcheckImplem(name string) error {
+func (i *Container) healthcheckImplem(name string) error {
 	i.mu.Lock()
 
 	serviceAny, ok := i.services[name]
@@ -177,7 +177,7 @@ func (i *Injector) healthcheckImplem(name string) error {
 	return nil
 }
 
-func (i *Injector) shutdownImplem(name string) error {
+func (i *Container) shutdownImplem(name string) error {
 	i.mu.Lock()
 
 	serviceAny, ok := i.services[name]
@@ -206,7 +206,7 @@ func (i *Injector) shutdownImplem(name string) error {
 	return nil
 }
 
-func (i *Injector) exists(name string) bool {
+func (i *Container) exists(name string) bool {
 	i.mu.RLock()
 	defer i.mu.RUnlock()
 
@@ -214,7 +214,7 @@ func (i *Injector) exists(name string) bool {
 	return ok
 }
 
-func (i *Injector) get(name string) (any, bool) {
+func (i *Container) get(name string) (any, bool) {
 	i.mu.RLock()
 	defer i.mu.RUnlock()
 
@@ -222,7 +222,7 @@ func (i *Injector) get(name string) (any, bool) {
 	return s, ok
 }
 
-func (i *Injector) set(name string, service any) {
+func (i *Container) set(name string, service any) {
 	i.mu.Lock()
 	defer i.mu.Unlock()
 
@@ -232,14 +232,14 @@ func (i *Injector) set(name string, service any) {
 	defer i.onServiceRegistration(name)
 }
 
-func (i *Injector) remove(name string) {
+func (i *Container) remove(name string) {
 	i.mu.Lock()
 	defer i.mu.Unlock()
 
 	delete(i.services, name)
 }
 
-func (i *Injector) forEach(cb func(name string, service any)) {
+func (i *Container) forEach(cb func(name string, service any)) {
 	i.mu.Lock()
 	defer i.mu.Unlock()
 
@@ -248,7 +248,7 @@ func (i *Injector) forEach(cb func(name string, service any)) {
 	}
 }
 
-func (i *Injector) serviceNotFound(name string) error {
+func (i *Container) serviceNotFound(name string) error {
 	// @TODO: use the Keys+Map functions from `golang.org/x/exp/maps` as
 	// soon as it is released in stdlib.
 	servicesNames := keys(i.services)
@@ -259,7 +259,7 @@ func (i *Injector) serviceNotFound(name string) error {
 	return fmt.Errorf("DI: could not find service `%s`, available services: %s", name, strings.Join(servicesNames, ", "))
 }
 
-func (i *Injector) onServiceInvoke(name string) {
+func (i *Container) onServiceInvoke(name string) {
 	i.mu.Lock()
 	defer i.mu.Unlock()
 
@@ -269,25 +269,25 @@ func (i *Injector) onServiceInvoke(name string) {
 	}
 }
 
-func (i *Injector) onServiceRegistration(name string) {
+func (i *Container) onServiceRegistration(name string) {
 	if i.hookAfterRegistration != nil {
 		i.hookAfterRegistration(i, name)
 	}
 }
 
-func (i *Injector) onServiceShutdown(name string) {
+func (i *Container) onServiceShutdown(name string) {
 	if i.hookAfterShutdown != nil {
 		i.hookAfterShutdown(i, name)
 	}
 }
 
 // Clone clones injector with provided services but not with invoked instances.
-func (i *Injector) Clone() *Injector {
-	return i.CloneWithOpts(&InjectorOpts{})
+func (i *Container) Clone() *Container {
+	return i.CloneWithOpts(&ContainerOpts{})
 }
 
 // CloneWithOpts clones injector with provided services but not with invoked instances, with options.
-func (i *Injector) CloneWithOpts(opts *InjectorOpts) *Injector {
+func (i *Container) CloneWithOpts(opts *ContainerOpts) *Container {
 	clone := NewWithOpts(opts)
 
 	i.mu.RLock()

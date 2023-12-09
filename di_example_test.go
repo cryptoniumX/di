@@ -5,16 +5,16 @@ import (
 )
 
 func ExampleProvide() {
-	injector := New()
+	container := New()
 
 	type test struct {
 		foobar string
 	}
 
-	Provide(injector, func(i *Injector) (*test, error) {
+	Provide(container, func(i *Container) (*test, error) {
 		return &test{foobar: "foobar"}, nil
 	})
-	value, err := Invoke[*test](injector)
+	value, err := Invoke[*test](container)
 
 	fmt.Println(value)
 	fmt.Println(err)
@@ -24,16 +24,16 @@ func ExampleProvide() {
 }
 
 func ExampleInvoke() {
-	injector := New()
+	container := New()
 
 	type test struct {
 		foobar string
 	}
 
-	Provide(injector, func(i *Injector) (*test, error) {
+	Provide(container, func(i *Container) (*test, error) {
 		return &test{foobar: "foobar"}, nil
 	})
-	value, err := Invoke[*test](injector)
+	value, err := Invoke[*test](container)
 
 	fmt.Println(value)
 	fmt.Println(err)
@@ -43,16 +43,16 @@ func ExampleInvoke() {
 }
 
 func ExampleMustInvoke() {
-	injector := New()
+	container := New()
 
 	type test struct {
 		foobar string
 	}
 
-	Provide(injector, func(i *Injector) (*test, error) {
+	Provide(container, func(i *Container) (*test, error) {
 		return &test{foobar: "foobar"}, nil
 	})
-	value := MustInvoke[*test](injector)
+	value := MustInvoke[*test](container)
 
 	fmt.Println(value)
 	// Output:
@@ -60,16 +60,16 @@ func ExampleMustInvoke() {
 }
 
 func ExampleProvideNamed() {
-	injector := New()
+	container := New()
 
 	type test struct {
 		foobar string
 	}
 
-	ProvideNamed(injector, "my_service", func(i *Injector) (*test, error) {
+	ProvideNamed(container, "my_service", func(i *Container) (*test, error) {
 		return &test{foobar: "foobar"}, nil
 	})
-	value, err := InvokeNamed[*test](injector, "my_service")
+	value, err := InvokeNamed[*test](container, "my_service")
 
 	fmt.Println(value)
 	fmt.Println(err)
@@ -79,16 +79,16 @@ func ExampleProvideNamed() {
 }
 
 func ExampleInvokeNamed() {
-	injector := New()
+	container := New()
 
 	type test struct {
 		foobar string
 	}
 
-	ProvideNamed(injector, "my_service", func(i *Injector) (*test, error) {
+	ProvideNamed(container, "my_service", func(i *Container) (*test, error) {
 		return &test{foobar: "foobar"}, nil
 	})
-	value, err := InvokeNamed[*test](injector, "my_service")
+	value, err := InvokeNamed[*test](container, "my_service")
 
 	fmt.Println(value)
 	fmt.Println(err)
@@ -98,16 +98,16 @@ func ExampleInvokeNamed() {
 }
 
 func ExampleMustInvokeNamed() {
-	injector := New()
+	container := New()
 
 	type test struct {
 		foobar string
 	}
 
-	ProvideNamed(injector, "my_service", func(i *Injector) (*test, error) {
+	ProvideNamed(container, "my_service", func(i *Container) (*test, error) {
 		return &test{foobar: "foobar"}, nil
 	})
-	value := MustInvokeNamed[*test](injector, "my_service")
+	value := MustInvokeNamed[*test](container, "my_service")
 
 	fmt.Println(value)
 	// Output:
@@ -115,14 +115,14 @@ func ExampleMustInvokeNamed() {
 }
 
 func ExampleProvideValue() {
-	injector := New()
+	Container := New()
 
 	type test struct {
 		foobar string
 	}
 
-	ProvideValue(injector, &test{foobar: "foobar"})
-	value, err := Invoke[*test](injector)
+	ProvideValue(Container, &test{foobar: "foobar"})
+	value, err := Invoke[*test](Container)
 
 	fmt.Println(value)
 	fmt.Println(err)
@@ -132,14 +132,14 @@ func ExampleProvideValue() {
 }
 
 func ExampleProvideNamedValue() {
-	injector := New()
+	Container := New()
 
 	type test struct {
 		foobar string
 	}
 
-	ProvideNamedValue(injector, "my_service", &test{foobar: "foobar"})
-	value, err := InvokeNamed[*test](injector, "my_service")
+	ProvideNamedValue(Container, "my_service", &test{foobar: "foobar"})
+	value, err := InvokeNamed[*test](Container, "my_service")
 
 	fmt.Println(value)
 	fmt.Println(err)
@@ -149,19 +149,19 @@ func ExampleProvideNamedValue() {
 }
 
 func ExampleOverride() {
-	injector := New()
+	container := New()
 
 	type test struct {
 		foobar string
 	}
 
-	Provide(injector, func(i *Injector) (*test, error) {
+	Provide(container, func(i *Container) (*test, error) {
 		return &test{foobar: "foobar1"}, nil
 	})
-	Override(injector, func(i *Injector) (*test, error) {
+	Override(container, func(i *Container) (*test, error) {
 		return &test{foobar: "foobar2"}, nil
 	})
-	value, err := Invoke[*test](injector)
+	value, err := Invoke[*test](container)
 
 	fmt.Println(value)
 	fmt.Println(err)
@@ -171,19 +171,19 @@ func ExampleOverride() {
 }
 
 func ExampleOverrideNamed() {
-	injector := New()
+	container := New()
 
 	type test struct {
 		foobar string
 	}
 
-	ProvideNamed(injector, "my_service", func(i *Injector) (*test, error) {
+	ProvideNamed(container, "my_service", func(i *Container) (*test, error) {
 		return &test{foobar: "foobar1"}, nil
 	})
-	OverrideNamed(injector, "my_service", func(i *Injector) (*test, error) {
+	OverrideNamed(container, "my_service", func(i *Container) (*test, error) {
 		return &test{foobar: "foobar2"}, nil
 	})
-	value, err := InvokeNamed[*test](injector, "my_service")
+	value, err := InvokeNamed[*test](container, "my_service")
 
 	fmt.Println(value)
 	fmt.Println(err)
@@ -193,15 +193,15 @@ func ExampleOverrideNamed() {
 }
 
 func ExampleOverrideNamedValue() {
-	injector := New()
+	Container := New()
 
 	type test struct {
 		foobar string
 	}
 
-	ProvideNamedValue(injector, "my_service", &test{foobar: "foobar1"})
-	OverrideNamedValue(injector, "my_service", &test{foobar: "foobar2"})
-	value, err := InvokeNamed[*test](injector, "my_service")
+	ProvideNamedValue(Container, "my_service", &test{foobar: "foobar1"})
+	OverrideNamedValue(Container, "my_service", &test{foobar: "foobar2"})
+	value, err := InvokeNamed[*test](Container, "my_service")
 
 	fmt.Println(value)
 	fmt.Println(err)

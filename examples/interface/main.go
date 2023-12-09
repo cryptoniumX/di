@@ -5,21 +5,21 @@ import (
 )
 
 func main() {
-	injector := di.New()
+	Container := di.New()
 
 	// provide wheels
-	di.ProvideNamedValue(injector, "wheel-1", NewWheel())
-	di.ProvideNamedValue(injector, "wheel-2", NewWheel())
-	di.ProvideNamedValue(injector, "wheel-3", NewWheel())
-	di.ProvideNamedValue(injector, "wheel-4", NewWheel())
+	di.ProvideNamedValue(Container, "wheel-1", NewWheel())
+	di.ProvideNamedValue(Container, "wheel-2", NewWheel())
+	di.ProvideNamedValue(Container, "wheel-3", NewWheel())
+	di.ProvideNamedValue(Container, "wheel-4", NewWheel())
 
 	// provide car
-	di.Provide(injector, NewCar)
+	di.Provide(Container, NewCar)
 
 	// provide engine
-	di.Provide(injector, NewEngine)
+	di.Provide(Container, NewEngine)
 
 	// start car
-	car := di.MustInvoke[Car](injector)
+	car := di.MustInvoke[Car](Container)
 	car.Start()
 }

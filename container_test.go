@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestInjectorNew(t *testing.T) {
+func TestContainerNew(t *testing.T) {
 	is := assert.New(t)
 
 	i := New()
@@ -16,17 +16,17 @@ func TestInjectorNew(t *testing.T) {
 	is.Empty(i.services)
 }
 
-func TestInjectorNewWithOpts(t *testing.T) {
+func TestContainerNewWithOpts(t *testing.T) {
 	is := assert.New(t)
 
 	count := 0
 
-	i := NewWithOpts(&InjectorOpts{
-		HookAfterRegistration: func(injector *Injector, serviceName string) {
+	i := NewWithOpts(&ContainerOpts{
+		HookAfterRegistration: func(Container *Container, serviceName string) {
 			is.Equal("foobar", serviceName)
 			count++
 		},
-		HookAfterShutdown: func(injector *Injector, serviceName string) {
+		HookAfterShutdown: func(Container *Container, serviceName string) {
 			is.Equal("foobar", serviceName)
 			count++
 		},
@@ -44,7 +44,7 @@ func TestInjectorNewWithOpts(t *testing.T) {
 	is.Equal(2, count)
 }
 
-func TestInjectorListProvidedServices(t *testing.T) {
+func TestContainerListProvidedServices(t *testing.T) {
 	is := assert.New(t)
 
 	i := New()
@@ -60,7 +60,7 @@ func TestInjectorListProvidedServices(t *testing.T) {
 	})
 }
 
-func TestInjectorListInvokedServices(t *testing.T) {
+func TestContainerListInvokedServices(t *testing.T) {
 	is := assert.New(t)
 
 	i := New()
@@ -84,14 +84,14 @@ func (t *testHealthCheck) HealthCheck() error {
 	return fmt.Errorf("broken")
 }
 
-func TestInjectorHealthCheck(t *testing.T) {
+func TestContainerHealthCheck(t *testing.T) {
 	is := assert.New(t)
 
 	i := New()
 
 	is.NotPanics(func() {
 		ProvideValue[int](i, 42)
-		ProvideNamed(i, "testHealthCheck", func(i *Injector) (*testHealthCheck, error) {
+		ProvideNamed(i, "testHealthCheck", func(i *Container) (*testHealthCheck, error) {
 			return &testHealthCheck{}, nil
 		})
 	})
@@ -124,12 +124,12 @@ func TestInjectorHealthCheck(t *testing.T) {
 	})
 }
 
-func TestInjectorExists(t *testing.T) {
+func TestContainerExists(t *testing.T) {
 	is := assert.New(t)
 
 	i := New()
 
-	service := &ServiceEager[int]{
+	service := &ServiceEager{
 		name:     "foobar",
 		instance: 42,
 	}
@@ -139,12 +139,12 @@ func TestInjectorExists(t *testing.T) {
 	is.False(i.exists("foobaz"))
 }
 
-func TestInjectorGet(t *testing.T) {
+func TestContainerGet(t *testing.T) {
 	is := assert.New(t)
 
 	i := New()
 
-	service := &ServiceEager[int]{
+	service := &ServiceEager{
 		name:     "foobar",
 		instance: 42,
 	}
@@ -156,7 +156,7 @@ func TestInjectorGet(t *testing.T) {
 		is.True(ok1)
 		is.NotEmpty(s1)
 		if ok1 {
-			s, ok := s1.(Service[int])
+			s, ok := s1.(Service)
 			is.True(ok)
 
 			v, err := s.getInstance(i)
@@ -173,17 +173,17 @@ func TestInjectorGet(t *testing.T) {
 	}
 }
 
-func TestInjectorSet(t *testing.T) {
+func TestContainerSet(t *testing.T) {
 	is := assert.New(t)
 
 	i := New()
 
-	service1 := &ServiceEager[int]{
+	service1 := &ServiceEager{
 		name:     "foobar",
 		instance: 42,
 	}
 
-	service2 := &ServiceEager[int]{
+	service2 := &ServiceEager{
 		name:     "foobar",
 		instance: 21,
 	}
@@ -204,12 +204,12 @@ func TestInjectorSet(t *testing.T) {
 	is.True(reflect.DeepEqual(service2, s2))
 }
 
-func TestInjectorRemove(t *testing.T) {
+func TestContainerRemove(t *testing.T) {
 	is := assert.New(t)
 
 	i := New()
 
-	service := &ServiceEager[int]{
+	service := &ServiceEager{
 		name:     "foobar",
 		instance: 42,
 	}
@@ -220,12 +220,12 @@ func TestInjectorRemove(t *testing.T) {
 	is.Len(i.services, 0)
 }
 
-func TestInjectorForEach(t *testing.T) {
+func TestContainerForEach(t *testing.T) {
 	is := assert.New(t)
 
 	i := New()
 
-	service := &ServiceEager[int]{
+	service := &ServiceEager{
 		name:     "foobar",
 		instance: 42,
 	}
@@ -241,17 +241,17 @@ func TestInjectorForEach(t *testing.T) {
 	is.Equal(1, count)
 }
 
-func TestInjectorServiceNotFound(t *testing.T) {
+func TestContainerServiceNotFound(t *testing.T) {
 	is := assert.New(t)
 
 	i := New()
 
-	service1 := &ServiceEager[int]{
+	service1 := &ServiceEager{
 		name:     "foo",
 		instance: 42,
 	}
 
-	service2 := &ServiceEager[int]{
+	service2 := &ServiceEager{
 		name:     "bar",
 		instance: 21,
 	}
@@ -266,7 +266,7 @@ func TestInjectorServiceNotFound(t *testing.T) {
 	is.ErrorContains(err, "`bar`")
 }
 
-func TestInjectorOnServiceInvoke(t *testing.T) {
+func TestContainerOnServiceInvoke(t *testing.T) {
 	is := assert.New(t)
 
 	i := New()
@@ -279,7 +279,7 @@ func TestInjectorOnServiceInvoke(t *testing.T) {
 	is.Equal(2, i.orderedInvocationIndex)
 }
 
-func TestInjectorCloneEager(t *testing.T) {
+func TestContainerCloneEager(t *testing.T) {
 	is := assert.New(t)
 
 	count := 0
@@ -300,7 +300,7 @@ func TestInjectorCloneEager(t *testing.T) {
 	is.Equal(42, s1)
 
 	// service can be overridden
-	OverrideNamed(i2, "foobar", func(_ *Injector) (int, error) {
+	OverrideNamed(i2, "foobar", func(_ *Container) (int, error) {
 		count++
 		return 6 * 9, nil
 	})
@@ -310,14 +310,14 @@ func TestInjectorCloneEager(t *testing.T) {
 	is.Equal(1, count)
 }
 
-func TestInjectorCloneLazy(t *testing.T) {
+func TestContainerCloneLazy(t *testing.T) {
 	is := assert.New(t)
 
 	count := 0
 
 	// setup original container
 	i1 := New()
-	ProvideNamed(i1, "foobar", func(_ *Injector) (int, error) {
+	ProvideNamed(i1, "foobar", func(_ *Container) (int, error) {
 		count++
 		return 42, nil
 	})
@@ -336,7 +336,7 @@ func TestInjectorCloneLazy(t *testing.T) {
 	is.Equal(2, count)
 
 	// service can be overridden
-	OverrideNamed(i2, "foobar", func(_ *Injector) (int, error) {
+	OverrideNamed(i2, "foobar", func(_ *Container) (int, error) {
 		count++
 		return 6 * 9, nil
 	})
