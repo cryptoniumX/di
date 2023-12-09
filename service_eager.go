@@ -18,7 +18,7 @@ func (s *ServiceEager) getName() string {
 }
 
 //nolint:unused
-func (s *ServiceEager) getInstance(i *Injector) (any, error) {
+func (s *ServiceEager) getInstance(i *Container) (any, error) {
 	return s.instance, nil
 }
 

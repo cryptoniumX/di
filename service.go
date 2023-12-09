@@ -6,7 +6,7 @@ import (
 
 type Service interface {
 	getName() string
-	getInstance(*Injector) (any, error)
+	getInstance(*Container) (any, error)
 	healthcheck() error
 	shutdown() error
 	clone() any

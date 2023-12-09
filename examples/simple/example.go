@@ -30,16 +30,16 @@ func (c *Car) Start() {
  * Run example
  */
 func main() {
-	injector := di.New()
+	Container := di.New()
 
 	// provide wheels
-	di.ProvideNamedValue(injector, "wheel-1", &Wheel{})
-	di.ProvideNamedValue(injector, "wheel-2", &Wheel{})
-	di.ProvideNamedValue(injector, "wheel-3", &Wheel{})
-	di.ProvideNamedValue(injector, "wheel-4", &Wheel{})
+	di.ProvideNamedValue(Container, "wheel-1", &Wheel{})
+	di.ProvideNamedValue(Container, "wheel-2", &Wheel{})
+	di.ProvideNamedValue(Container, "wheel-3", &Wheel{})
+	di.ProvideNamedValue(Container, "wheel-4", &Wheel{})
 
 	// provide car
-	di.Provide(injector, func(i *di.Injector) (*Car, error) {
+	di.Provide(Container, func(i *di.Container) (*Car, error) {
 		car := Car{
 			Engine: di.MustInvoke[*Engine](i),
 			Wheels: []*Wheel{
@@ -54,11 +54,11 @@ func main() {
 	})
 
 	// provide engine
-	di.Provide(injector, func(i *di.Injector) (*Engine, error) {
+	di.Provide(Container, func(i *di.Container) (*Engine, error) {
 		return &Engine{}, nil
 	})
 
 	// start car
-	car := di.MustInvoke[*Car](injector)
+	car := di.MustInvoke[*Car](Container)
 	car.Start()
 }

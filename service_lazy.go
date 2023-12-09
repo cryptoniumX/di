@@ -4,12 +4,12 @@ import (
 	"sync"
 )
 
-type Provider[T any] func(*Injector) (T, error)
-type providerFn func(*Injector) (any, error)
+type Provider[T any] func(*Container) (T, error)
+type providerFn func(*Container) (any, error)
 
 func toProviderFn[T any](provider Provider[T]) providerFn {
-	return func(injector *Injector) (any, error) {
-		result, err := provider(injector)
+	return func(Container *Container) (any, error) {
+		result, err := provider(Container)
 		return result, err
 	}
 }
@@ -39,7 +39,7 @@ func (s *ServiceLazy) getName() string {
 }
 
 //nolint:unused
-func (s *ServiceLazy) getInstance(i *Injector) (any, error) {
+func (s *ServiceLazy) getInstance(i *Container) (any, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -54,7 +54,7 @@ func (s *ServiceLazy) getInstance(i *Injector) (any, error) {
 }
 
 //nolint:unused
-func (s *ServiceLazy) build(i *Injector) (err error) {
+func (s *ServiceLazy) build(i *Container) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			if e, ok := r.(error); ok {

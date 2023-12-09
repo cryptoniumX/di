@@ -24,10 +24,10 @@ func TestServiceLazyName(t *testing.T) {
 	}
 	_test := test{foobar: "foobar"}
 
-	provider1 := func(i *Injector) (int, error) {
+	provider1 := func(i *Container) (int, error) {
 		return 42, nil
 	}
-	provider2 := func(i *Injector) (test, error) {
+	provider2 := func(i *Container) (test, error) {
 		return _test, nil
 	}
 
@@ -46,19 +46,19 @@ func TestServiceLazyInstance(t *testing.T) {
 	}
 	_test := test{foobar: "foobar"}
 
-	provider1 := func(i *Injector) (int, error) {
+	provider1 := func(i *Container) (int, error) {
 		return 42, nil
 	}
-	provider2 := func(i *Injector) (test, error) {
+	provider2 := func(i *Container) (test, error) {
 		return _test, nil
 	}
-	provider3 := func(i *Injector) (int, error) {
+	provider3 := func(i *Container) (int, error) {
 		panic("error")
 	}
-	provider4 := func(i *Injector) (int, error) {
+	provider4 := func(i *Container) (int, error) {
 		panic(fmt.Errorf("error"))
 	}
-	provider5 := func(i *Injector) (int, error) {
+	provider5 := func(i *Container) (int, error) {
 		return 42, fmt.Errorf("error")
 	}
 
@@ -102,11 +102,11 @@ func TestServiceLazyInstanceShutDown(t *testing.T) {
 	is := assert.New(t)
 
 	index := 1
-	provider1 := func(i *Injector) (*lazyTest, error) {
+	provider1 := func(i *Container) (*lazyTest, error) {
 		index++
 		return &lazyTest{index, nil}, nil
 	}
-	provider2 := func(i *Injector) (*lazyTest, error) {
+	provider2 := func(i *Container) (*lazyTest, error) {
 		index++
 		return &lazyTest{index, assert.AnError}, nil
 	}
