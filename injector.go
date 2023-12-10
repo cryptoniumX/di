@@ -10,7 +10,7 @@ func (container *Container) Inject(servicePtr interface{}) error {
 
 	// Ensure that servicePtr is a pointer to a struct
 	if ptrValue.Kind() != reflect.Ptr || ptrValue.Elem().Kind() != reflect.Struct {
-		return fmt.Errorf("Invalid pointer type")
+		return fmt.Errorf("Inject: Must pass a pointer to a struct")
 	}
 
 	structValue := ptrValue.Elem()

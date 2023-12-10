@@ -78,3 +78,33 @@ func TestInject(t *testing.T) {
 	assert.Equal(t, s.Test.foobar, "foobar")
 	assert.Equal(t, s.Float64, 69.69)
 }
+
+func TestInjectFailPassByValue(t *testing.T) {
+	type service struct {
+		Dependency1 int    `di:"depdency1"`
+		Dependency2 string `di:"depdency2"`
+	}
+
+	container := New()
+	Provide(container, func(i *Container) (int, error) {
+		return 3, nil
+	})
+	Provide(container, func(i *Container) (string, error) {
+		return "string", nil
+	})
+
+	s := service{}
+
+	// try to pass by value
+	expectedMsg := "Inject: Must pass a pointer to a struct"
+	err := container.Inject(s)
+	assert.Containsf(t, err.Error(), expectedMsg, "expected error containing %q, got %s", expectedMsg, err)
+
+	// try to pass a map
+	m := make(map[string]interface{})
+	err = container.Inject(m)
+	assert.Containsf(t, err.Error(), expectedMsg, "expected error containing %q, got %s", expectedMsg, err)
+	err = container.Inject(&s)
+	assert.NoError(t, err)
+
+}
