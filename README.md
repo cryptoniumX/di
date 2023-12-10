@@ -1,6 +1,8 @@
-# do - Dependency Injection
+# DI - Dependency Injection
 
-[![tag](https://img.shields.io/github/tag/samber/di.svg)](https://github.com/cryptoniumX/di/releases)
+> This is a forked of the original [Do](https://github.com/samber/do) package with an extension to allow dynamically injecting depdencies to a struct through reflection.
+
+
 ![Go Version](https://img.shields.io/badge/Go-%3E%3D%201.18-%23007d9c)
 [![GoDoc](https://godoc.org/github.com/cryptoniumX/di?status.svg)](https://pkg.go.dev/github.com/cryptoniumX/di)
 ![Build Status](https://github.com/cryptoniumX/di/actions/workflows/test.yml/badge.svg)
@@ -11,15 +13,6 @@
 **⚙️ A dependency injection toolkit based on Go 1.18+ Generics.**
 
 This library implements the Dependency Injection design pattern. It may replace the `uber/dig` fantastic package in simple Go projects. `samber/do` uses Go 1.18+ generics and therefore is typesafe.
-
-**See also:**
-
-- [samber/lo](https://github.com/samber/lo): A Lodash-style Go library based on Go 1.18+ Generics
-- [samber/mo](https://github.com/samber/mo): Monads based on Go 1.18+ Generics (Option, Result, Either...)
-
-**Why this name?**
-
-I love **short name** for such a utility library. This name is the sum of `DI` and `Go` and no Go package currently uses this name.
 
 ## 💡 Features
 
@@ -42,6 +35,33 @@ I love **short name** for such a utility library. This name is the sum of `DI` a
 🕵️ Service health can be checked individually or globally. Services implementing `di.Healthcheckable` interface will be called via `di.HealthCheck[type]()` or `Container.HealthCheck()`.
 
 🛑 Services can be shutdowned properly, in back-initialization order. Services implementing `di.Shutdownable` interface will be called via `di.Shutdown[type]()` or `Container.Shutdown()`.
+
+## Di compared to original Do package
+We added a method to allow injecting dependencies dynamically through struct reflection.
+Declare a service, and add a `di:"<name>:` tag to the field where you want the container to inject the corresponding dependency.
+
+```go
+// main.go
+container := New()
+repository := newRepository()
+redisClient := newRedisClient()
+ProvideValue[Repository](container, repository)
+ProvideValue[RedisClient](container, redisClient)
+
+// service.go
+type service struct {
+	Repository  Repository  `di:"repository"`
+	RedisClient RedisClient `di:"redisClient"`
+}
+
+func newService(
+    container *di.Container
+) (&service, error) {
+    s := service{}
+    err := container.Inject(&s)
+    return s, err
+}
+```
 
 ## 🚀 Install
 
