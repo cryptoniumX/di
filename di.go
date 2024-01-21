@@ -108,7 +108,10 @@ func invokeImplem[T any](i *Container, name string, fallbackName string) (T, err
 		fallbackNames := []string{
 			// if name is not found, try to find by pointer name
 			fmt.Sprintf("*%s", name),
-			fallbackName,
+		}
+
+		if fallbackName != "" {
+			fallbackNames = append(fallbackNames, fallbackName)
 		}
 
 		for _, fallbackName := range fallbackNames {

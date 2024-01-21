@@ -6,8 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type Repository interface {
-	GetID() string
+type Repository[T any] interface {
+	GetID() T
 }
 
 type repository struct {
@@ -54,15 +54,15 @@ func TestInject(t *testing.T) {
 
 	repository := newRepository()
 	redisClient := newRedisClient()
-	ProvideValue[Repository](container, repository)
+	ProvideValue[Repository[string]](container, repository)
 	ProvideValue[RedisClient](container, redisClient)
 	ProvideNamedValue[float64](container, "float64Container", 69.69)
 
 	type service struct {
-		Repository  Repository  `di:"repository"`
-		RedisClient RedisClient `di:"redisClient"`
-		Test        *test       `di:"test"`
-		Float64     float64     `di:"float64Container"`
+		Repository  Repository[string] `di:""`
+		RedisClient RedisClient        `di:""`
+		Test        *test              `di:""`
+		Float64     float64            `di:"float64Container"`
 	}
 
 	s := service{}

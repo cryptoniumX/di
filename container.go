@@ -256,7 +256,7 @@ func (i *Container) serviceNotFound(name string) error {
 		return fmt.Sprintf("`%s`", name)
 	})
 
-	return fmt.Errorf("DI: could not find service `%s`, available services: %s", name, strings.Join(servicesNames, ", "))
+	return fmt.Errorf("DI: could not find service `%s`, available services: %s", name, strings.Join(servicesNames, "\n"))
 }
 
 func (i *Container) onServiceInvoke(name string) {
