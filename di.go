@@ -93,8 +93,12 @@ func MustInvokeNamed[T any](i *Container, name string) T {
 	return s
 }
 
-func invokeByName(i *Container, name string, fallbackName string) (interface{}, error) {
-	return invokeImplem[any](i, name, fallbackName)
+func invokeByName(serviceName string, i *Container, dependencyName string, fallbackName string) (interface{}, error) {
+	d, err := invokeImplem[any](i, dependencyName, fallbackName)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to inject dependencies to service %s: %w", serviceName, err)
+	}
+	return d, nil
 }
 
 func invokeImplem[T any](i *Container, name string, fallbackName string) (T, error) {

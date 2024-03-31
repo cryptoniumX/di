@@ -13,6 +13,9 @@ func (container *Container) Inject(servicePtr interface{}) error {
 		return fmt.Errorf("Inject: Must pass a pointer to a struct")
 	}
 
+	// Get the type of the struct from the pointer
+	structType := ptrValue.Elem().Type()
+	serviceName := structType.Name()
 	structValue := ptrValue.Elem()
 	// Iterate through the fields of the struct
 	for i := 0; i < structValue.NumField(); i++ {
@@ -22,7 +25,7 @@ func (container *Container) Inject(servicePtr interface{}) error {
 		if ok {
 			defaultName := field.Type.String()
 			fallbackName := dependencyName
-			dependency, err := invokeByName(container, defaultName, fallbackName)
+			dependency, err := invokeByName(serviceName, container, defaultName, fallbackName)
 			if err != nil {
 				return err
 			}

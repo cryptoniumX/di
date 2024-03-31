@@ -58,14 +58,14 @@ func TestInject(t *testing.T) {
 	ProvideValue[RedisClient](container, redisClient)
 	ProvideNamedValue[float64](container, "float64Container", 69.69)
 
-	type service struct {
+	type TestService struct {
 		Repository  Repository[string] `di:""`
 		RedisClient RedisClient        `di:""`
 		Test        *test              `di:""`
 		Float64     float64            `di:"float64Container"`
 	}
 
-	s := service{}
+	s := TestService{}
 	err := container.Inject(&s)
 	assert.NoError(t, err)
 
